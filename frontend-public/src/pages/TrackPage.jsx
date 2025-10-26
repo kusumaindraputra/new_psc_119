@@ -64,19 +64,19 @@ export default function TrackPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             🔍 Lacak Laporan
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm md:text-base text-gray-600">
             Masukkan nomor telepon yang Anda gunakan saat melapor
           </p>
         </div>
 
-        <div className="card mb-8">
-          <form onSubmit={handleSearch} className="flex gap-4">
+        <div className="card mb-6 md:mb-8">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <input
               type="tel"
               value={phone}
@@ -88,7 +88,7 @@ export default function TrackPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
             >
               {loading ? '⏳ Mencari...' : '🔍 Cari'}
             </button>
@@ -109,22 +109,23 @@ export default function TrackPage() {
 
         {reports.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
               Laporan Anda ({reports.length})
             </h2>
             
             {reports.map((report) => (
               <div key={report.id} className="card">
-                <div className="flex justify-between items-start mb-4">
+                {/* Header - stack badges on mobile */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 mb-1">
                       {report.category?.name || 'Kategori Tidak Tersedia'}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs md:text-sm text-gray-500 break-all">
                       ID: {report.id}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusLabels[report.status]?.color || 'bg-gray-100'}`}>
                       {statusLabels[report.status]?.text || report.status}
                     </span>
@@ -134,19 +135,24 @@ export default function TrackPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-4">
-                  <p className="text-gray-700">
-                    <strong>Pelapor:</strong> {report.reporter_name}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Deskripsi:</strong> {report.description}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Alamat:</strong> {report.address}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Dilaporkan:</strong> {formatDate(report.created_at)}
-                  </p>
+                {/* Details - better mobile layout */}
+                <div className="space-y-3 mb-4 text-sm md:text-base">
+                  <div>
+                    <span className="font-semibold text-gray-700">Pelapor:</span>{' '}
+                    <span className="text-gray-700">{report.reporter_name}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Deskripsi:</span>{' '}
+                    <span className="text-gray-700">{report.description}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Alamat:</span>{' '}
+                    <span className="text-gray-700">{report.address}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Dilaporkan:</span>{' '}
+                    <span className="text-gray-700">{formatDate(report.created_at)}</span>
+                  </div>
                 </div>
 
                 {report.photo_url && (
@@ -161,26 +167,26 @@ export default function TrackPage() {
 
                 {/* Timeline/Progress */}
                 <div className="border-t pt-4">
-                  <h4 className="font-bold text-gray-700 mb-3">Status Penanganan:</h4>
+                  <h4 className="font-bold text-gray-700 mb-3 text-sm md:text-base">Status Penanganan:</h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${report.created_at ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${report.created_at ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       <span className="text-sm text-gray-600">Laporan diterima</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${report.verified_at ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${report.verified_at ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       <span className="text-sm text-gray-600">Laporan diverifikasi</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${report.status === 'assigned' || report.status === 'in_progress' || report.status === 'closed' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${report.status === 'assigned' || report.status === 'in_progress' || report.status === 'closed' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       <span className="text-sm text-gray-600">Tim ditugaskan</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${report.status === 'in_progress' || report.status === 'closed' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${report.status === 'in_progress' || report.status === 'closed' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       <span className="text-sm text-gray-600">Dalam penanganan</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${report.status === 'closed' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${report.status === 'closed' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       <span className="text-sm text-gray-600">Selesai</span>
                     </div>
                   </div>
@@ -188,7 +194,7 @@ export default function TrackPage() {
 
                 {report.assignments && report.assignments.length > 0 && (
                   <div className="border-t pt-4 mt-4">
-                    <h4 className="font-bold text-gray-700 mb-2">Tim Penanganan:</h4>
+                    <h4 className="font-bold text-gray-700 mb-2 text-sm md:text-base">Tim Penanganan:</h4>
                     {report.assignments.map((assignment, idx) => (
                       <div key={idx} className="text-sm text-gray-600">
                         • Petugas: {assignment.assignee?.name || 'N/A'}

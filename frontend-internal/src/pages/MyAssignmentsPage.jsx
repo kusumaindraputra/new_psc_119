@@ -176,7 +176,8 @@ export default function MyAssignmentsPage() {
                           <label className="label text-sm">Upload Foto Bukti (opsional)</label>
                           <input
                             type="file"
-                            accept="image/*"
+                            accept="image/*;capture=camera"
+                            capture="environment"
                             onChange={(e) => setPhotoFile(e.target.files[0])}
                             className="input text-sm"
                           />

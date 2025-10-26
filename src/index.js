@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 8080;
 app.use(helmet());
 
 // CORS configuration - convert comma-separated string to array
-const corsOrigins = process.env.CORS_ORIGIN 
+const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : '*';
 
@@ -43,8 +43,8 @@ app.use('/uploads', express.static('uploads'));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     service: 'PSC 119 Backend API',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
@@ -62,14 +62,13 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
-    
-  // Sync database models (avoid alter to prevent risky constraint ops during dev)
-  await sequelize.sync();
+
+    // Sync database models (avoid alter to prevent risky constraint ops during dev)
+    await sequelize.sync();
     console.log('✅ Database models synchronized.');
-    
-    app.listen(PORT, '0.0.0.0', () => {
+
+    return app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 PSC 119 Backend API running on http://localhost:${PORT}`);
-      console.log(`🌐 Network: http://192.168.1.15:${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {
@@ -91,6 +90,9 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-startServer();
+// Only start the server if this file is run directly (not required by tests)
+if (require.main === module && process.env.NODE_ENV !== 'test') {
+  startServer();
+}
 
-module.exports = app;
+module.exports = { app, startServer };

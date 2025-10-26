@@ -70,57 +70,89 @@ export default function AssignmentsPage() {
           </div>
         </div>
 
-        <div className="card overflow-x-auto">
+        <div className="card">
           {loading ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">⏳</div>
               <p className="text-gray-600">Memuat penugasan...</p>
             </div>
           ) : (
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600">
-                  <th className="py-3 px-3">ID</th>
-                  <th className="py-3 px-3">Laporan</th>
-                  <th className="py-3 px-3">Petugas</th>
-                  <th className="py-3 px-3">Unit / Kendaraan</th>
-                  <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-3">Ditugaskan</th>
-                  <th className="py-3 px-3 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assignments.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-gray-500">Tidak ada data</td>
-                  </tr>
+            <>
+              {/* Mobile list */}
+              <div className="md:hidden space-y-3">
+                {assignments.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">Tidak ada data</div>
+                ) : (
+                  assignments.map((a) => (
+                    <div key={a.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="text-sm text-gray-500">Tugas #{a.id}</div>
+                          <div className="font-semibold">Laporan #{a.report_id}</div>
+                          <div className="text-sm text-gray-700">{a.report?.category?.name || '-'}</div>
+                          <div className="text-xs text-gray-500">{a.assignee?.name || '-'}</div>
+                        </div>
+                        {statusBadge(a.status)}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-2">
+                        <span className="font-medium">Unit:</span> {a.unit?.name || '-'} • <span className="font-medium">Kendaraan:</span> {a.vehicle?.plate_number || '-'}
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <Link to={`/reports/${a.report_id}`} className="btn btn-secondary flex-1">Lihat Laporan</Link>
+                      </div>
+                    </div>
+                  ))
                 )}
-                {assignments.map((a) => (
-                  <tr key={a.id} className="border-t border-gray-100">
-                    <td className="py-3 px-3 font-mono">#{a.id}</td>
-                    <td className="py-3 px-3">
-                      <div className="font-medium">Laporan #{a.report_id}</div>
-                      <div className="text-xs text-gray-500">{a.report?.category?.name || '-'}</div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="font-medium">{a.assignee?.name || '-'}</div>
-                      <div className="text-xs text-gray-500">{a.assignee?.email || ''}</div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div>{a.unit?.name || '-'}</div>
-                      <div className="text-xs text-gray-500">{a.vehicle?.plate_number || '-'}</div>
-                    </td>
-                    <td className="py-3 px-3">{statusBadge(a.status)}</td>
-                    <td className="py-3 px-3">{new Date(a.assigned_at).toLocaleDateString()}</td>
-                    <td className="py-3 px-3 text-right">
-                      <Link to={`/reports/${a.report_id}`} className="btn btn-secondary">
-                        Lihat Laporan
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-600">
+                      <th className="py-3 px-3">ID</th>
+                      <th className="py-3 px-3">Laporan</th>
+                      <th className="py-3 px-3">Petugas</th>
+                      <th className="py-3 px-3">Unit / Kendaraan</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3">Ditugaskan</th>
+                      <th className="py-3 px-3 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assignments.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-gray-500">Tidak ada data</td>
+                      </tr>
+                    )}
+                    {assignments.map((a) => (
+                      <tr key={a.id} className="border-t border-gray-100">
+                        <td className="py-3 px-3 font-mono">#{a.id}</td>
+                        <td className="py-3 px-3">
+                          <div className="font-medium">Laporan #{a.report_id}</div>
+                          <div className="text-xs text-gray-500">{a.report?.category?.name || '-'}</div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="font-medium">{a.assignee?.name || '-'}</div>
+                          <div className="text-xs text-gray-500">{a.assignee?.email || ''}</div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div>{a.unit?.name || '-'}</div>
+                          <div className="text-xs text-gray-500">{a.vehicle?.plate_number || '-'}</div>
+                        </td>
+                        <td className="py-3 px-3">{statusBadge(a.status)}</td>
+                        <td className="py-3 px-3">{new Date(a.assigned_at).toLocaleDateString()}</td>
+                        <td className="py-3 px-3 text-right">
+                          <Link to={`/reports/${a.report_id}`} className="btn btn-secondary">
+                            Lihat Laporan
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>

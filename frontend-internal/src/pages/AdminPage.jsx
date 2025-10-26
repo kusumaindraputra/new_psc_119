@@ -221,12 +221,12 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold text-gray-900">Master Data</h1>
         </div>
 
-        <div className="border-b border-gray-200">
-          <nav className="flex gap-4">
+        <div className="border-b border-gray-200 overflow-x-auto">
+          <nav className="flex gap-2 md:gap-4 min-w-max">
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                className={`px-4 py-3 border-b-2 font-medium text-sm transition-colors ${
+                className={`px-3 md:px-4 py-3 border-b-2 font-medium text-xs md:text-sm transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-primary-600 text-primary-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -244,7 +244,7 @@ export default function AdminPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold mb-2">Tambah / Ubah Kategori</h3>
-                <form onSubmit={saveCategory} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <form onSubmit={saveCategory} className="flex flex-col md:grid md:grid-cols-3 gap-3">
                   <input
                     type="text"
                     placeholder="Nama kategori"
@@ -260,7 +260,7 @@ export default function AdminPage() {
                     onChange={(e) => setCatForm(f => ({ ...f, description: e.target.value }))}
                   />
                   <div className="flex gap-2">
-                    <button type="submit" className="btn btn-primary w-full">{catForm.id ? 'Simpan Perubahan' : 'Tambah Kategori'}</button>
+                    <button type="submit" className="btn btn-primary w-full">{catForm.id ? 'Simpan' : 'Tambah'}</button>
                     {catForm.id && (
                       <button type="button" className="btn btn-secondary" onClick={() => setCatForm({ id: '', name: '', description: '' })}>Batal</button>
                     )}
@@ -275,9 +275,9 @@ export default function AdminPage() {
                   <table className="min-w-full text-sm">
                     <thead>
                       <tr className="text-left text-gray-600">
-                        <th className="py-3 px-3">Nama</th>
-                        <th className="py-3 px-3">Deskripsi</th>
-                        <th className="py-3 px-3 w-40">Aksi</th>
+                        <th className="py-3 px-2 md:px-3">Nama</th>
+                        <th className="py-3 px-2 md:px-3 hidden sm:table-cell">Deskripsi</th>
+                        <th className="py-3 px-2 md:px-3 w-32 md:w-40">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -288,12 +288,12 @@ export default function AdminPage() {
                       )}
                       {categories.map((c) => (
                         <tr key={c.id} className="border-t">
-                          <td className="py-3 px-3 font-medium">{c.name}</td>
-                          <td className="py-3 px-3 text-gray-600">{c.description || '-'}</td>
-                          <td className="py-3 px-3">
+                          <td className="py-3 px-2 md:px-3 font-medium">{c.name}</td>
+                          <td className="py-3 px-2 md:px-3 text-gray-600 hidden sm:table-cell">{c.description || '-'}</td>
+                          <td className="py-3 px-2 md:px-3">
                             <div className="flex gap-2">
-                              <button className="btn btn-secondary" onClick={() => editCategory(c)}>Ubah</button>
-                              <button className="btn btn-danger" onClick={() => deleteCategory(c.id)}>Hapus</button>
+                              <button className="btn btn-secondary text-xs md:text-sm px-2 md:px-4" onClick={() => editCategory(c)}>Ubah</button>
+                              <button className="btn btn-danger text-xs md:text-sm px-2 md:px-4" onClick={() => deleteCategory(c.id)}>Hapus</button>
                             </div>
                           </td>
                         </tr>

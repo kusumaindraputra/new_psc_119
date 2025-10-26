@@ -5,9 +5,10 @@ class AuthService {
   async register(userData) {
     const { name, email, phone, password, role } = userData;
 
+    const { Op } = require('sequelize');
     const existingUser = await User.findOne({
       where: {
-        $or: [{ email }, { phone }]
+        [Op.or]: [{ email }, { phone }]
       }
     });
 

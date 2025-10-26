@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const backendUrl = env.VITE_BACKEND_URL || env.BACKEND_URL || 'http://localhost:8080'
+  
   return {
     plugins: [react()],
     server: {
@@ -10,11 +12,11 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       proxy: {
         '/api': {
-          target: env.BACKEND_URL || 'http://localhost:8080',
+          target: backendUrl,
           changeOrigin: true
         },
         '/uploads': {
-          target: env.BACKEND_URL || 'http://localhost:8080',
+          target: backendUrl,
           changeOrigin: true
         }
       }

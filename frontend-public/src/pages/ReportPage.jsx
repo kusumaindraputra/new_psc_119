@@ -171,6 +171,10 @@ export default function ReportPage() {
                 required
                 className="input-field"
                 placeholder="08xxxxxxxxxx"
+                inputMode="tel"
+                autoComplete="tel"
+                pattern="[0-9]*"
+                enterKeyHint="done"
               />
             </div>
 
@@ -249,7 +253,8 @@ export default function ReportPage() {
               </label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*;capture=camera"
+                capture="environment"
                 onChange={handleFileChange}
                 className="input-field"
               />

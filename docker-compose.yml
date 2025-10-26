@@ -87,6 +87,7 @@ services:
     container_name: psc119-public
     environment:
       VITE_API_URL: /api
+      VITE_BACKEND_URL: http://backend:8080
     ports:
       - "3000:3000"
     volumes:
