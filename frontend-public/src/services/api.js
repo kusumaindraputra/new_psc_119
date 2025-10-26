@@ -48,9 +48,9 @@ export const reportAPI = {
 }
 
 export const categoryAPI = {
-  // Get all categories
+  // Get all categories (public endpoint)
   getAll: async () => {
-    const response = await api.get('/admin/categories')
+    const response = await api.get('/categories')
     return response.data
   }
 }

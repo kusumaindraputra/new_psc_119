@@ -13,8 +13,14 @@ const PORT = process.env.PORT || 8080;
 
 // Security middleware
 app.use(helmet());
+
+// CORS configuration - convert comma-separated string to array
+const corsOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : '*';
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: corsOrigins,
   credentials: true
 }));
 
@@ -52,8 +58,8 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
     
-    // Sync database models (use { force: false } in production)
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+  // Sync database models (avoid alter to prevent risky constraint ops during dev)
+  await sequelize.sync();
     console.log('✅ Database models synchronized.');
     
     app.listen(PORT, () => {

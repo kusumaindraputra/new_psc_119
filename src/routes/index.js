@@ -8,12 +8,14 @@ const assignmentRoutes = require('./assignmentRoutes');
 const adminRoutes = require('./adminRoutes');
 const dashboardRoutes = require('./dashboardRoutes');
 const sseRoutes = require('./sseRoutes');
+const categoryRoutes = require('./categoryRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/reports', reportRoutes);
 router.use('/assignments', assignmentRoutes);
 router.use('/admin', adminRoutes);
+router.use('/categories', categoryRoutes); // public categories
 router.use('/dashboard', dashboardRoutes);
 router.use('/stream', sseRoutes);
 

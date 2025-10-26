@@ -86,6 +86,15 @@ class AuthController {
     }
   }
 
+  async getFieldOfficers(req, res, next) {
+    try {
+      const users = await authService.getAllUsers({ role: 'field_officer', is_active: true });
+      res.json({ success: true, data: users });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async updateUser(req, res, next) {
     try {
       const { userId } = req.params;

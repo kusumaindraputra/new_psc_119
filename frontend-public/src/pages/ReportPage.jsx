@@ -24,7 +24,8 @@ export default function ReportPage() {
   const loadCategories = async () => {
     try {
       const response = await categoryAPI.getAll()
-      setCategories(response.data || [])
+      console.log('Loaded categories:', response)
+      setCategories(response || [])
     } catch (error) {
       console.error('Error loading categories:', error)
     }
