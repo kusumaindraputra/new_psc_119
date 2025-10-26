@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { reportAPI } from '../services/api'
 
@@ -6,28 +7,32 @@ const statusLabels = {
   pending: { text: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' },
   verified: { text: 'Terverifikasi', color: 'bg-blue-100 text-blue-800' },
   assigned: { text: 'Ditugaskan', color: 'bg-purple-100 text-purple-800' },
-  in_progress: { text: 'Dalam Proses', color: 'bg-orange-100 text-orange-800' },
+  in_progress: { text: 'Diproses', color: 'bg-orange-100 text-orange-800' },
   closed: { text: 'Selesai', color: 'bg-green-100 text-green-800' },
   rejected: { text: 'Ditolak', color: 'bg-red-100 text-red-800' }
 }
 
-const priorityLabels = {
-  low: { text: 'Rendah', color: 'bg-gray-100 text-gray-800' },
-  medium: { text: 'Sedang', color: 'bg-yellow-100 text-yellow-800' },
-  high: { text: 'Tinggi', color: 'bg-orange-100 text-orange-800' },
-  critical: { text: 'Kritis', color: 'bg-red-100 text-red-800' }
-}
+// Priority badge hidden by request to avoid confusion without context
 
 export default function TrackPage() {
+  const [searchParams] = useSearchParams()
   const [phone, setPhone] = useState('')
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
 
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    
-    if (!phone || phone.length < 10) {
+  // Auto-search if phone is in URL params
+  useEffect(() => {
+    const phoneParam = searchParams.get('phone')
+    if (phoneParam) {
+      setPhone(phoneParam)
+      // Trigger search automatically
+      performSearch(phoneParam)
+    }
+  }, [searchParams])
+
+  const performSearch = async (phoneNumber) => {
+    if (!phoneNumber || phoneNumber.length < 10) {
       toast.error('Masukkan nomor telepon yang valid')
       return
     }
@@ -36,7 +41,7 @@ export default function TrackPage() {
     setSearched(true)
     
     try {
-      const response = await reportAPI.trackByPhone(phone)
+      const response = await reportAPI.trackByPhone(phoneNumber)
       setReports(response.data || [])
       
       if (!response.data || response.data.length === 0) {
@@ -53,14 +58,26 @@ export default function TrackPage() {
     }
   }
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    performSearch(phone)
+  }
+
+  const formatDate = (dateInput) => {
+    const d = dateInput || null
+    const date = d ? new Date(d) : null
+    if (!date || isNaN(date.getTime())) return '-'
+    try {
+      return date.toLocaleString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch {
+      return '-'
+    }
   }
 
   return (
@@ -129,9 +146,6 @@ export default function TrackPage() {
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusLabels[report.status]?.color || 'bg-gray-100'}`}>
                       {statusLabels[report.status]?.text || report.status}
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${priorityLabels[report.priority]?.color || 'bg-gray-100'}`}>
-                      {priorityLabels[report.priority]?.text || report.priority}
-                    </span>
                   </div>
                 </div>
 
@@ -151,7 +165,7 @@ export default function TrackPage() {
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Dilaporkan:</span>{' '}
-                    <span className="text-gray-700">{formatDate(report.created_at)}</span>
+                    <span className="text-gray-700">{formatDate(report.created_at || report.createdAt)}</span>
                   </div>
                 </div>
 
@@ -197,7 +211,7 @@ export default function TrackPage() {
                     <h4 className="font-bold text-gray-700 mb-2 text-sm md:text-base">Tim Penanganan:</h4>
                     {report.assignments.map((assignment, idx) => (
                       <div key={idx} className="text-sm text-gray-600">
-                        • Petugas: {assignment.assignee?.name || 'N/A'}
+                        • Petugas: {assignment.assignee?.name || '-'}
                         {assignment.vehicle && ` - Kendaraan: ${assignment.vehicle.plate_number}`}
                       </div>
                     ))}

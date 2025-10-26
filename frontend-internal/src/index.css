@@ -32,7 +32,7 @@
   }
   
   .badge {
-    @apply px-3 py-1 rounded-full text-xs font-medium;
+    @apply px-3 py-1 rounded-full text-xs font-medium inline-block whitespace-nowrap;
   }
   
   .badge-pending {

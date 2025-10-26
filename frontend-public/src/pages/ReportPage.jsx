@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { reportAPI, categoryAPI } from '../services/api'
 
 export default function ReportPage() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState([])
   const [location, setLocation] = useState(null)
@@ -102,25 +104,15 @@ export default function ReportPage() {
 
       const response = await reportAPI.createReport(submitData)
       
-      toast.success('✅ Laporan berhasil dikirim! Tim kami akan segera merespons.')
+      toast.success('✅ Laporan berhasil dikirim! Mengalihkan ke halaman pelacakan...')
       
-      // Reset form
-      setFormData({
-        reporter_name: '',
-        phone: '',
-        description: '',
-        category_id: '',
-        address: '',
-        photo: null
-      })
-      setLocation(null)
+      // Get phone number for tracking
+      const phoneNumber = formData.phone
       
-      // Show report ID
-      if (response.data?.id) {
-        toast.info(`ID Laporan: ${response.data.id}. Simpan untuk pelacakan.`, {
-          autoClose: 10000
-        })
-      }
+      // Redirect to tracking page after a short delay
+      setTimeout(() => {
+        navigate(`/track?phone=${phoneNumber}`)
+      }, 1500)
       
     } catch (error) {
       console.error('Error submitting report:', error)

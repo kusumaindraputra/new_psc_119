@@ -3,16 +3,18 @@ import { Link } from 'react-router-dom'
 import { reportAPI } from '../services/api'
 import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
+import { getReportStatusText } from '../utils/statusLabels'
 
 const statusBadge = (status) => {
   const map = {
     pending: 'bg-yellow-100 text-yellow-800',
     verified: 'bg-blue-100 text-blue-800',
+    assigned: 'bg-purple-100 text-purple-800',
     in_progress: 'bg-orange-100 text-orange-800',
     closed: 'bg-green-100 text-green-800',
     rejected: 'bg-red-100 text-red-800'
   }
-  const label = status === 'closed' ? 'completed' : (status?.replace('_', ' ') || '-')
+  const label = getReportStatusText(status)
   return <span className={`badge ${map[status] || 'bg-gray-100 text-gray-800'}`}>{label}</span>
 }
 
@@ -90,11 +92,12 @@ export default function ReportsPage() {
           <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <div className="flex gap-2">
               {[
-                { key: 'pending', label: 'pending' },
-                { key: 'verified', label: 'verified' },
-                { key: 'in_progress', label: 'in progress' },
-                { key: 'completed', label: 'completed' }, // maps to API 'closed'
-                { key: 'rejected', label: 'rejected' }
+                { key: 'pending', label: 'Menunggu' },
+                { key: 'verified', label: 'Terverifikasi' },
+                { key: 'assigned', label: 'Ditugaskan' },
+                { key: 'in_progress', label: 'Diproses' },
+                { key: 'completed', label: 'Selesai' }, // maps to API 'closed'
+                { key: 'rejected', label: 'Ditolak' }
               ].map(({ key, label }) => (
                 <button
                   key={key}

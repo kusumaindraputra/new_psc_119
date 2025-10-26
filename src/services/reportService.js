@@ -189,7 +189,15 @@ class ReportService {
       order: [['created_at', 'DESC']],
       include: [
         { model: MasterCategory, as: 'category' },
-        { model: Assignment, as: 'assignments' }
+        { 
+          model: Assignment, 
+          as: 'assignments',
+          include: [
+            { association: 'assignee' },
+            { association: 'vehicle' },
+            { association: 'unit' }
+          ]
+        }
       ]
     });
 

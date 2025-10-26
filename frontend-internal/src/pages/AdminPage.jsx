@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import { adminAPI } from '../services/api'
 import { toast } from 'react-toastify'
+import { getVehicleStatusText } from '../utils/statusLabels'
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('categories')
@@ -376,7 +377,9 @@ export default function AdminPage() {
                     {['ambulance', 'rescue', 'support', 'other'].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                   <select className="input" value={vehForm.status} onChange={(e) => setVehForm(f => ({ ...f, status: e.target.value }))}>
-                    {['available', 'in_use', 'maintenance', 'unavailable'].map(s => <option key={s} value={s}>{s}</option>)}
+                    {['available', 'in_use', 'maintenance', 'unavailable'].map(s => (
+                      <option key={s} value={s}>{getVehicleStatusText(s)}</option>
+                    ))}
                   </select>
                   <select className="input" value={vehForm.unit_id} onChange={(e) => setVehForm(f => ({ ...f, unit_id: e.target.value }))}>
                     <option value="">(Tanpa unit)</option>
@@ -415,7 +418,7 @@ export default function AdminPage() {
                         <tr key={v.id} className="border-t">
                           <td className="py-3 px-3 font-medium">{v.plate_number}</td>
                           <td className="py-3 px-3">{v.type}</td>
-                          <td className="py-3 px-3">{v.status}</td>
+                          <td className="py-3 px-3">{getVehicleStatusText(v.status)}</td>
                           <td className="py-3 px-3">{v.unit?.name || '-'}</td>
                           <td className="py-3 px-3">{v.is_active ? '✓' : '—'}</td>
                           <td className="py-3 px-3">

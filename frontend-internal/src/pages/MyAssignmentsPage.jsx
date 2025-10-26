@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { assignmentAPI } from '../services/api'
 import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
+import { getAssignmentStatusText } from '../utils/statusLabels'
 
 const statusBadge = (status) => {
   const map = {
@@ -11,7 +12,7 @@ const statusBadge = (status) => {
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800'
   }
-  return <span className={`badge ${map[status] || 'bg-gray-100 text-gray-800'}`}>{status?.replace('_', ' ')}</span>
+  return <span className={`badge ${map[status] || 'bg-gray-100 text-gray-800'}`}>{getAssignmentStatusText(status)}</span>
 }
 
 export default function MyAssignmentsPage() {
@@ -68,7 +69,7 @@ export default function MyAssignmentsPage() {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
 
-      toast.success(`Status diperbarui: ${status}`)
+  toast.success(`Status diperbarui: ${getAssignmentStatusText(status)}`)
       setPhotoFile(null)
       load()
     } catch (err) {
@@ -94,7 +95,7 @@ export default function MyAssignmentsPage() {
                 className={`px-3 py-2 rounded border text-sm ${filter === s ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-700 border-gray-300'}`}
                 onClick={() => setFilter(s)}
               >
-                {s === 'all' ? 'Semua' : s.replace('_', ' ')}
+                {s === 'all' ? 'Semua' : getAssignmentStatusText(s)}
               </button>
             ))}
           </div>

@@ -5,14 +5,35 @@ import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
 
 const statusBadge = (status) => {
-  const map = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    accepted: 'bg-blue-100 text-blue-800',
-    in_progress: 'bg-orange-100 text-orange-800',
-    completed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800'
+  const statusConfig = {
+    pending: { 
+      label: 'Menunggu', 
+      class: 'bg-yellow-100 text-yellow-800' 
+    },
+    accepted: { 
+      label: 'Diterima', 
+      class: 'bg-blue-100 text-blue-800' 
+    },
+    in_progress: { 
+      label: 'Diproses', 
+      class: 'bg-orange-100 text-orange-800' 
+    },
+    completed: { 
+      label: 'Selesai', 
+      class: 'bg-green-100 text-green-800' 
+    },
+    cancelled: { 
+      label: 'Dibatalkan', 
+      class: 'bg-red-100 text-red-800' 
+    }
   }
-  return <span className={`badge ${map[status] || 'bg-gray-100 text-gray-800'}`}>{status?.replace('_', ' ')}</span>
+  
+  const config = statusConfig[status] || { 
+    label: 'Tidak diketahui', 
+    class: 'bg-gray-100 text-gray-800' 
+  }
+  
+  return <span className={`badge ${config.class}`}>{config.label}</span>
 }
 
 export default function AssignmentsPage() {
@@ -57,14 +78,21 @@ export default function AssignmentsPage() {
         </div>
 
         <div className="card">
-          <div className="flex gap-2">
-            {['all', 'pending', 'accepted', 'in_progress', 'completed', 'cancelled'].map(s => (
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { value: 'all', label: 'Semua' },
+              { value: 'pending', label: 'Menunggu' },
+              { value: 'accepted', label: 'Diterima' },
+              { value: 'in_progress', label: 'Dalam Proses' },
+              { value: 'completed', label: 'Selesai' },
+              { value: 'cancelled', label: 'Dibatalkan' }
+            ].map(({ value, label }) => (
               <button
-                key={s}
-                className={`px-3 py-2 rounded border text-sm ${filter === s ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-700 border-gray-300'}`}
-                onClick={() => setFilter(s)}
+                key={value}
+                className={`px-3 py-2 rounded border text-sm whitespace-nowrap ${filter === value ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                onClick={() => setFilter(value)}
               >
-                {s === 'all' ? 'Semua' : s.replace('_', ' ')}
+                {label}
               </button>
             ))}
           </div>
@@ -98,7 +126,9 @@ export default function AssignmentsPage() {
                         <span className="font-medium">Unit:</span> {a.unit?.name || '-'} • <span className="font-medium">Kendaraan:</span> {a.vehicle?.plate_number || '-'}
                       </div>
                       <div className="flex gap-2 mt-3">
-                        <Link to={`/reports/${a.report_id}`} className="btn btn-secondary flex-1">Lihat Laporan</Link>
+                        <Link to={`/reports/${a.report_id}`} className="btn btn-primary text-sm w-full text-center">
+                          📋 Lihat Laporan
+                        </Link>
                       </div>
                     </div>
                   ))
@@ -143,8 +173,8 @@ export default function AssignmentsPage() {
                         <td className="py-3 px-3">{statusBadge(a.status)}</td>
                         <td className="py-3 px-3">{new Date(a.assigned_at).toLocaleDateString()}</td>
                         <td className="py-3 px-3 text-right">
-                          <Link to={`/reports/${a.report_id}`} className="btn btn-secondary">
-                            Lihat Laporan
+                          <Link to={`/reports/${a.report_id}`} className="btn btn-primary text-sm inline-flex items-center gap-1">
+                            📋 Lihat
                           </Link>
                         </td>
                       </tr>

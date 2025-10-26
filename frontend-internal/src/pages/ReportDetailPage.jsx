@@ -4,6 +4,7 @@ import { reportAPI } from '../services/api'
 import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
 import AssignmentCreateModal from '../components/AssignmentCreateModal'
+import { getReportStatusText } from '../utils/statusLabels'
 
 export default function ReportDetailPage() {
   const { id } = useParams()
@@ -104,7 +105,7 @@ export default function ReportDetailPage() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-600">Status</span>
-                <span className="font-medium capitalize">{report.status}</span>
+             <span className="font-medium">{getReportStatusText(report.status)}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-600">Prioritas</span>
