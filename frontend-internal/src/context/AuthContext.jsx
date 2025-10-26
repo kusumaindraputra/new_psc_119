@@ -36,10 +36,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('🔐 Attempting login:', { email, timestamp: new Date().toISOString() })
       const response = await authAPI.login(email, password)
+      
+      console.log('📥 Login response:', response)
       
       if (response.success && response.data) {
         const { token, user: userData } = response.data
+        
+        console.log('✅ Login successful:', { 
+          userName: userData.name, 
+          userRole: userData.role,
+          hasToken: !!token 
+        })
         
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(userData))
@@ -53,7 +62,14 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Invalid response format')
       }
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('❌ Login error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      })
+      
       const message = error.response?.data?.message || 'Login gagal. Periksa email dan password Anda.'
       toast.error(message)
       return { success: false, message }

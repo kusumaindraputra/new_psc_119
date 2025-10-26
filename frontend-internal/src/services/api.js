@@ -2,31 +2,85 @@ import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
+// Log configuration
+console.log('🔧 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_URL: API_URL,
+  timestamp: new Date().toISOString()
+})
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 10000 // 10 second timeout
 })
 
 // Add auth token to requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
+    console.log('📤 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: config.baseURL + config.url,
+      hasToken: !!token,
+      timestamp: new Date().toISOString()
+    })
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
   (error) => {
+    console.error('❌ Request Error:', error)
     return Promise.reject(error)
   }
 )
 
 // Handle auth errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ API Response:', {
+      method: response.config.method?.toUpperCase(),
+      url: response.config.url,
+      status: response.status,
+      statusText: response.statusText,
+      timestamp: new Date().toISOString()
+    })
+    return response
+  },
   (error) => {
+    const errorDetails = {
+      message: error.message,
+      code: error.code,
+      timestamp: new Date().toISOString()
+    }
+
+    if (error.response) {
+      // Server responded with error
+      errorDetails.type = 'Server Error'
+      errorDetails.status = error.response.status
+      errorDetails.statusText = error.response.statusText
+      errorDetails.data = error.response.data
+      errorDetails.url = error.config?.url
+      console.error('❌ Server Error:', errorDetails)
+    } else if (error.request) {
+      // Request made but no response
+      errorDetails.type = 'Network Error'
+      errorDetails.url = error.config?.url
+      errorDetails.baseURL = error.config?.baseURL
+      errorDetails.method = error.config?.method
+      errorDetails.note = 'No response from server - check network connection or server availability'
+      console.error('❌ Network Error:', errorDetails)
+    } else {
+      // Something else happened
+      errorDetails.type = 'Request Setup Error'
+      console.error('❌ Request Error:', errorDetails)
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')

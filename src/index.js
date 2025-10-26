@@ -43,7 +43,12 @@ app.use('/uploads', express.static('uploads'));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    service: 'PSC 119 Backend API',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // API routes
@@ -62,8 +67,9 @@ const startServer = async () => {
   await sequelize.sync();
     console.log('✅ Database models synchronized.');
     
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 PSC 119 Backend API running on http://localhost:${PORT}`);
+      console.log(`🌐 Network: http://192.168.1.15:${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {

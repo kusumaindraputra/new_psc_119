@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-psc119_db}
+      POSTGRES_USER: ${DB_USER:-psc119}
+      POSTGRES_PASSWORD: ${DB_PASS:-yourpassword}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-psc119_db}
+      DB_USER: ${DB_USER:-psc119}
+      DB_PASS: ${DB_PASS:-yourpassword}
+      CORS_ORIGIN: "*"
+    depends_on:
+      - db
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - app
+
+  internal_web:
+    build:
+      context: ./frontend-internal
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+    networks:
+      - app
+
+  public_web:
+    build:
+      context: ./frontend-public
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    depends_on:
+      - backend
+    ports:
+      - "8082:80"
+    networks:
+      - app
+
+volumes:
+  db_data:
+  uploads:
+
+networks:
+  app:

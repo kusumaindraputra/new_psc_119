@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import DebugInfo from '../components/DebugInfo'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -112,6 +113,8 @@ export default function LoginPage() {
           © 2025 PSC 119. All rights reserved.
         </p>
       </div>
+
+      <DebugInfo />
     </div>
   )
 }

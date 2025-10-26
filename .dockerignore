@@ -1,0 +1,26 @@
+# Node
+node_modules
+npm-debug.log
+.yarn-cache
+.pnpm-store
+
+# Frontend build outputs
+frontend-internal/dist
+frontend-public/dist
+
+# Local envs
+.env
+frontend-internal/.env
+frontend-public/.env
+
+# Docker
+Dockerfile*
+!.dockerignore
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+Thumbs.db

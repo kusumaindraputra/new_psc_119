@@ -1,0 +1,5 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#dc2626"/>
+  <text x="50%" y="50%" font-size="120" fill="white" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-weight="bold">PSC</text>
+  <text x="50%" y="65%" font-size="80" fill="white" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif">119</text>
+</svg>

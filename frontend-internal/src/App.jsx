@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import InstallPrompt from './components/InstallPrompt'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ReportsPage from './pages/ReportsPage'
@@ -68,6 +69,8 @@ function App() {
             draggable
             pauseOnHover
           />
+          
+          <InstallPrompt />
         </div>
       </AuthProvider>
     </BrowserRouter>

@@ -98,7 +98,7 @@ You should see:
 }
 ```
 
-### Step 7: Frontend Setup
+### Step 7: Frontend Public Setup
 
 ```powershell
 # Navigate to public frontend
@@ -113,6 +113,25 @@ npm run dev
 
 Frontend will run on: `http://localhost:3000`
 
+### Step 8: Frontend Internal Setup (PWA)
+
+```powershell
+# Navigate to internal frontend
+cd frontend-internal
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+Internal PWA will run on: `http://localhost:3001`
+
+**Default login:**
+- Email: `dispatcher@psc119.id`
+- Password: `dispatcher123`
+
 ## 🧪 Testing the System
 
 ### Test 1: Public Report Submission
@@ -126,26 +145,42 @@ Frontend will run on: `http://localhost:3000`
    - Click "Get Location" button
    - Submit report
 
-### Test 2: Login to Internal System
+### Test 2: Login to Internal PWA
 
-API endpoint: `POST http://localhost:8080/api/auth/login`
+1. Go to `http://localhost:3001/login`
+2. Login with dispatcher credentials:
+   - Email: `dispatcher@psc119.id`
+   - Password: `dispatcher123`
+3. Navigate through:
+   - **Dashboard**: View metrics and recent reports
+   - **Reports**: Verify/reject incoming reports
+   - **Assignments**: View all field assignments
+   - **Report Detail**: Create assignments for field officers
 
-```json
-{
-  "email": "dispatcher@psc119.id",
-  "password": "dispatcher123"
-}
-```
+### Test 3: Field Officer Workflow
 
-You'll receive a JWT token to use for authenticated requests.
+1. Login as field officer:
+   - Email: `field1@psc119.id`
+   - Password: `field123`
+2. Go to "My Assignments"
+3. Accept an assignment
+4. Update status to "In Progress"
+5. Upload proof photo and mark as "Completed"
 
-### Test 3: Track Report
+### Test 4: Track Report (Public)
 
 1. Go to `http://localhost:3000/track`
 2. Enter phone: 081234567890
 3. See your submitted reports
 
-### Test 4: SSE Stream
+### Test 5: Install PWA
+
+1. Open `http://localhost:3001` in Chrome/Edge
+2. Look for install prompt in the bottom-right corner
+3. Click "Install" to add to home screen
+4. Launch PWA from desktop/home screen
+
+### Test 6: SSE Stream
 
 Open browser console and run:
 
@@ -251,28 +286,73 @@ new_psc_119/
 │   │   └── services/
 │   └── package.json
 │
+├── frontend-internal/        # Internal PWA for staff
+│   ├── src/
+│   │   ├── components/       # Modals, layout, etc
+│   │   ├── pages/            # Dashboard, reports, assignments
+│   │   ├── context/          # AuthContext
+│   │   └── services/         # API client
+│   ├── public/
+│   │   ├── manifest.json     # PWA manifest
+│   │   └── sw.js             # Service worker
+│   └── package.json
+│
 ├── package.json              # Backend dependencies
 ├── .env                      # Environment config
 └── README.md                 # Main documentation
 ```
 
+## 🔧 PWA Features (Internal App)
+
+The internal frontend is a Progressive Web App with:
+
+- ✅ **Service Worker**: Caches assets for offline access
+- ✅ **Install Prompt**: Users can install to home screen/desktop
+- ✅ **Offline Support**: Basic UI works without internet
+- ✅ **Responsive**: Works on desktop, tablet, and mobile
+- ✅ **Fast Loading**: Cached assets load instantly
+- ⏳ **Push Notifications**: Coming soon
+
+### Installing the PWA
+
+**On Desktop (Chrome/Edge):**
+1. Open `http://localhost:3001`
+2. Click install icon in address bar or use install prompt
+3. App opens in standalone window
+
+**On Mobile:**
+1. Open site in mobile browser
+2. Tap "Add to Home Screen"
+3. App appears like native app
+
+**On iOS:**
+1. Open in Safari
+2. Tap Share button
+3. Select "Add to Home Screen"
+
 ## 🔄 Development Workflow
 
 1. **Backend changes**: Edit files in `/src`, nodemon auto-restarts
-2. **Frontend changes**: Edit files in `/frontend-public/src`, Vite hot-reloads
-3. **Database changes**: Modify models in `/src/models`, restart server to sync
-4. **Add API endpoint**: 
+2. **Frontend Public**: Edit files in `/frontend-public/src`, Vite hot-reloads
+3. **Frontend Internal**: Edit files in `/frontend-internal/src`, Vite hot-reloads
+4. **Database changes**: Modify models in `/src/models`, restart server to sync
+5. **Add API endpoint**: 
    - Create service in `/src/services`
    - Create controller in `/src/controllers`
    - Add route in `/src/routes`
+6. **Update PWA**: Edit service worker in `/frontend-internal/public/sw.js`
 
 ## 📚 Next Steps
 
-- [ ] Build internal PWA for dispatchers and field officers
+- [x] Build internal PWA for dispatchers and field officers
+- [x] Add PWA features (service worker, install prompt)
+- [x] Implement assignment creation and management
+- [x] Add role-based access control
 - [ ] Add real-time dashboard with charts
-- [ ] Implement service worker for offline support
-- [ ] Add push notifications
+- [ ] Implement push notifications
+- [ ] Add offline data sync
 - [ ] Deploy to production server
+- [ ] Set up CI/CD pipeline
 
 ## 💡 Tips
 
