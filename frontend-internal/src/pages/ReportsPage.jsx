@@ -9,10 +9,11 @@ const statusBadge = (status) => {
     pending: 'bg-yellow-100 text-yellow-800',
     verified: 'bg-blue-100 text-blue-800',
     in_progress: 'bg-orange-100 text-orange-800',
-    completed: 'bg-green-100 text-green-800',
+    closed: 'bg-green-100 text-green-800',
     rejected: 'bg-red-100 text-red-800'
   }
-  return <span className={`badge ${map[status] || 'bg-gray-100 text-gray-800'}`}>{status?.replace('_', ' ')}</span>
+  const label = status === 'closed' ? 'completed' : (status?.replace('_', ' ') || '-')
+  return <span className={`badge ${map[status] || 'bg-gray-100 text-gray-800'}`}>{label}</span>
 }
 
 export default function ReportsPage() {
@@ -25,12 +26,29 @@ export default function ReportsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.status])
 
+  useEffect(() => {
+    const onNew = () => loadReports()
+    const onUpdate = () => loadReports()
+    window.addEventListener('psc119:new_report', onNew)
+    window.addEventListener('psc119:report_update', onUpdate)
+    return () => {
+      window.removeEventListener('psc119:new_report', onNew)
+      window.removeEventListener('psc119:report_update', onUpdate)
+    }
+  }, [])
+
   const loadReports = async () => {
     try {
       setLoading(true)
-      const res = await reportAPI.getAll({ status: filters.status, q: filters.q })
-      const data = res?.data || res?.items || res || []
-      setReports(Array.isArray(data) ? data : (data.rows || []))
+      // Map UI 'completed' to API 'closed'
+      const apiStatus = filters.status === 'completed' ? 'closed' : filters.status
+      const res = await reportAPI.getAll({ status: apiStatus, q: filters.q })
+      // Normalize response shape
+      const payload = res?.data ?? res
+      const rows = Array.isArray(payload)
+        ? payload
+        : (payload?.data ?? payload?.rows ?? [])
+      setReports(Array.isArray(rows) ? rows : [])
     } catch (err) {
       console.error('Error loading reports', err)
       toast.error('Gagal memuat laporan')
@@ -71,13 +89,19 @@ export default function ReportsPage() {
         <div className="card">
           <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <div className="flex gap-2">
-              {['pending', 'verified', 'in_progress', 'completed', 'rejected'].map(s => (
+              {[
+                { key: 'pending', label: 'pending' },
+                { key: 'verified', label: 'verified' },
+                { key: 'in_progress', label: 'in progress' },
+                { key: 'completed', label: 'completed' }, // maps to API 'closed'
+                { key: 'rejected', label: 'rejected' }
+              ].map(({ key, label }) => (
                 <button
-                  key={s}
-                  className={`px-3 py-2 rounded border text-sm ${filters.status === s ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-700 border-gray-300'}`}
-                  onClick={() => setFilters(f => ({ ...f, status: s }))}
+                  key={key}
+                  className={`px-3 py-2 rounded border text-sm ${filters.status === key ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-700 border-gray-300'}`}
+                  onClick={() => setFilters(f => ({ ...f, status: key }))}
                 >
-                  {s.replace('_', ' ')}
+                  {label}
                 </button>
               ))}
             </div>

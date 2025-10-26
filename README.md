@@ -31,14 +31,7 @@ PSC 119 enables citizens to submit emergency reports without authentication, whi
 ## 🏗️ Architecture
 
 ```
-PSC 119
-├── Backend (Node.js + Express)
-│   ├── REST API
-│   ├── JWT Authentication
-│   ├── SSE Event Streaming
-│   └── PostgreSQL + Sequelize ORM
-│
-└── Frontend (React)
+- [Docker Setup](#docker-setup)
     ├── Public Web (Reporting)
     └── Internal PWA (Dashboard + Management)
 ```
@@ -65,9 +58,10 @@ PSC 119
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- PostgreSQL (v13 or higher)
-- npm or yarn
+- Node.js 18 or higher (Vite 5 and the backend target Node 18)
+- PostgreSQL 13 or higher
+- npm (recommended) or yarn
+- Windows users: if testing from your phone on LAN, add inbound firewall rules for TCP 8080, 3000, 3001
 
 ### Backend Setup
 
@@ -101,22 +95,148 @@ PSC 119
    CREATE DATABASE psc119_db;
    ```
 
-5. **Run database migrations and seed**
-   ```bash
-   npm run dev
-   ```
-   
-   After first run, seed the database:
-   ```bash
-   node src/scripts/seed.js
-   ```
+5. **Initialize database and seed**
+  There is no separate migration step in dev; models auto-sync on start. Seed once after first successful start:
+  ```powershell
+  # Start once to let Sequelize create tables
+  npm run dev
+  # In another terminal, seed initial data
+  node src/scripts/seed.js
+  ```
 
-6. **Start the server**
+6. **Start the server (development)**
    ```bash
    npm run dev
    ```
 
 Server will run on `http://localhost:8080`
+
+Health check: `GET http://localhost:8080/health`
+
+API base: `http://localhost:8080/api`
+
+> Note: For development frontends, use the relative path `/api` (see frontends below). Vite or Nginx will proxy `/api` to the backend to avoid CORS issues.
+
+### Frontend – Internal (React PWA)
+
+1. Open the internal frontend
+  ```powershell
+  cd frontend-internal
+  npm ci
+  ```
+2. Environment (already set in `.env`)
+  ```env
+  VITE_API_URL=/api
+  ```
+3. Run (development)
+  ```powershell
+  npm run dev
+  ```
+  - Local: http://localhost:3001
+  - Network (LAN): http://<your_LAN_IP>:3001
+  - Vite proxies:
+    - `/api` → http://localhost:8080
+    - `/health` → http://localhost:8080
+
+PWA install note: Mobile install prompts require HTTPS or localhost. For a true install experience on phones, use an HTTPS tunnel or staging (see below).
+
+### Frontend – Public (React)
+
+1. Open the public frontend
+  ```powershell
+  cd frontend-public
+  npm ci
+  npm run dev
+  ```
+
+## 🐳 Docker Setup
+
+**Recommended for local development - eliminates terminal conflicts!**
+
+### Quick Start with Docker
+
+```powershell
+# 1. Start all services (PostgreSQL, Backend, Both Frontends)
+docker-compose up -d
+
+# 2. Wait for services to be ready (check logs)
+docker-compose logs -f
+
+# 3. Seed database (first time only)
+docker-compose exec backend node src/scripts/seed.js
+
+# 4. Access applications
+# Backend API: http://localhost:8080
+# Internal PWA: http://localhost:3001
+# Public Site: http://localhost:3000
+```
+
+### Docker Benefits
+
+- ✅ **No Terminal Conflicts** - All services in isolated containers
+- ✅ **Hot-Reload Enabled** - Code changes auto-reload
+- ✅ **Database Included** - PostgreSQL runs in container
+- ✅ **One Command Start/Stop** - `docker-compose up -d` / `docker-compose down`
+- ✅ **Consistent Environment** - Works on any machine with Docker
+
+### Essential Docker Commands
+
+```powershell
+# Start services
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart a service
+docker-compose restart backend
+
+# Check status
+docker-compose ps
+
+# Health check
+.\health-check.ps1
+```
+
+### Documentation
+
+- **Full Docker Guide**: [DOCKER_LOCAL.md](./DOCKER_LOCAL.md)
+- **Command Reference**: [DOCKER_COMMANDS.md](./DOCKER_COMMANDS.md)
+- **Setup Summary**: [DOCKER_SETUP.md](./DOCKER_SETUP.md)
+
+  - Local: http://localhost:3000
+  - Vite proxies:
+    - `/api` → http://localhost:8080
+    - `/uploads` → http://localhost:8080
+
+### Dev commands and ports
+
+- Backend API (Express)
+  - Run: `npm run dev`
+  - Port: 8080
+- Internal frontend (Vite)
+  - Run: `npm run dev` in `frontend-internal`
+  - Port: 3001
+- Public frontend (Vite)
+  - Run: `npm run dev` in `frontend-public`
+  - Port: 3000
+
+### Staging deployment (Docker Compose + Cloudflare)
+
+For a production-like HTTPS environment and a reliable PWA install experience, deploy the included staging stack:
+
+- Compose file: `docker-compose.staging.yml`
+- Services:
+  - `db` (Postgres)
+  - `backend` (Node/Express, internal only)
+  - `internal_web` (Nginx serving internal app, exposed on host 8081)
+  - `public_web` (Nginx serving public app, exposed on host 8082)
+- Recommended: map subdomains via Cloudflare Tunnel → 8081/8082
+
+See STAGING.md for full instructions.
 
 ### Default Credentials
 
@@ -348,11 +468,9 @@ Events:
 Example client:
 ```javascript
 const token = localStorage.getItem('token');
-const eventSource = new EventSource(`http://localhost:8080/api/stream/events`, {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-});
+// Note: native EventSource doesn't support custom headers.
+// Use a token as a query param (ensure backend supports it) or a fetch-based polyfill.
+const eventSource = new EventSource(`http://localhost:8080/api/stream/events?token=${token}`);
 
 eventSource.addEventListener('new_report', (event) => {
   const data = JSON.parse(event.data);
@@ -460,6 +578,25 @@ eventSource.addEventListener('new_report', (event) => {
 - Helmet.js security headers
 - CORS configuration
 - Input validation
+
+## 📲 PWA install (mobile)
+
+- The internal app includes a service worker and manifest for PWA behavior.
+- Mobile browsers only show the native install prompt over HTTPS or on localhost.
+- Use Cloudflare Tunnel or the staging stack for an HTTPS URL to test install flows.
+
+## 🛠️ Troubleshooting
+
+- “Cannot reach http://<LAN_IP>:3001”
+  - Ensure you ran `npm ci` inside `frontend-internal` and then `npm run dev`.
+  - Check Windows Firewall inbound rule for port 3001.
+  - Confirm Vite is listening on 0.0.0.0 in `frontend-internal/vite.config.js`.
+  - Check port conflicts: `netstat -ano | findstr :3001` then kill any stray `node.exe`.
+- Backend health is OK in browser but frontend says “Cannot reach backend”
+  - Verify the internal app uses `/api` and `/health` proxy in Vite config.
+  - If bypassing the proxy, ensure `CORS_ORIGIN` allows your origin.
+- Stale assets due to service worker
+  - Hard refresh or clear site data; during dev, keep the app on Vite (unregister SW if needed).
 
 ## 📝 License
 

@@ -25,6 +25,17 @@ export default function AssignmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter])
 
+  useEffect(() => {
+    const onAssigned = () => load()
+    const onReportUpdate = () => load()
+    window.addEventListener('psc119:assigned_task', onAssigned)
+    window.addEventListener('psc119:report_update', onReportUpdate)
+    return () => {
+      window.removeEventListener('psc119:assigned_task', onAssigned)
+      window.removeEventListener('psc119:report_update', onReportUpdate)
+    }
+  }, [])
+
   const load = async () => {
     try {
       setLoading(true)

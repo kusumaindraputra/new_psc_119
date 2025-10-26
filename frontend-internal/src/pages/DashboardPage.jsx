@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { dashboardAPI } from '../services/api'
+import { assignmentAPI } from '../services/api'
 import Layout from '../components/Layout'
 import { toast } from 'react-toastify'
 
@@ -8,15 +9,39 @@ export default function DashboardPage() {
   const { user } = useAuth()
   const [metrics, setMetrics] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [myAssignmentsCount, setMyAssignmentsCount] = useState(0)
 
   useEffect(() => {
     loadMetrics()
+    if (user?.role === 'field_officer') {
+      // Load my assignments count for field officer
+      assignmentAPI.getMyAssignments()
+        .then(res => setMyAssignmentsCount((res?.data || []).filter(a => a.status !== 'completed').length))
+        .catch(() => {})
+    }
   }, [])
 
   const loadMetrics = async () => {
     try {
       const response = await dashboardAPI.getMetrics()
-      setMetrics(response.data)
+      const data = response.data
+
+      // Derive simple counters for cards
+      const statusMap = Object.fromEntries((data.reportsByStatus || []).map(r => [r.status, r.count]))
+      const totalReports = (data.reportsByStatus || []).reduce((sum, r) => sum + (r.count || 0), 0)
+
+      setMetrics({
+        totalReports,
+        pendingReports: statusMap.pending || 0,
+        verifiedReports: statusMap.verified || 0,
+        inProgressReports: statusMap.in_progress || 0,
+        assignedReports: statusMap.assigned || 0,
+        completedReports: statusMap.closed || 0,
+        responseTime: data.responseTime,
+        sla: data.sla,
+        activeFieldOfficers: data.activeFieldOfficers,
+        raw: data
+      })
     } catch (error) {
       console.error('Error loading metrics:', error)
       toast.error('Gagal memuat data dashboard')
@@ -95,9 +120,7 @@ export default function DashboardPage() {
         {user?.role === 'field_officer' && (
           <div className="card">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Tugas Saya</h2>
-            <p className="text-gray-600 mb-4">
-              Anda memiliki {metrics?.myAssignments || 0} tugas aktif
-            </p>
+            <p className="text-gray-600 mb-4">Anda memiliki {myAssignmentsCount} tugas aktif</p>
             <a href="/my-assignments" className="btn btn-primary">
               Lihat Tugas
             </a>
@@ -107,12 +130,28 @@ export default function DashboardPage() {
         {(user?.role === 'dispatcher' || user?.role === 'admin') && (
           <div className="card">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Laporan Terbaru</h2>
-            <p className="text-gray-600 mb-4">
-              {metrics?.pendingReports || 0} laporan menunggu verifikasi
-            </p>
+            <p className="text-gray-600 mb-4">{metrics?.pendingReports || 0} laporan menunggu verifikasi</p>
             <a href="/reports" className="btn btn-primary">
               Lihat Laporan
             </a>
+          </div>
+        )}
+
+        {metrics?.responseTime && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card">
+              <p className="text-sm text-gray-600 mb-1">Rata Verifikasi (menit)</p>
+              <p className="text-3xl font-bold text-gray-900">{metrics.responseTime.avgVerificationMinutes}</p>
+            </div>
+            <div className="card">
+              <p className="text-sm text-gray-600 mb-1">Rata Selesai (jam)</p>
+              <p className="text-3xl font-bold text-gray-900">{metrics.responseTime.avgClosureHours}</p>
+            </div>
+            <div className="card">
+              <p className="text-sm text-gray-600 mb-1">SLA 24 jam</p>
+              <p className="text-3xl font-bold text-gray-900">{metrics.sla?.slaPercentage || 0}%</p>
+              <p className="text-xs text-gray-500">Dalam SLA: {metrics.sla?.withinSLA || 0} • Total Selesai: {metrics.sla?.totalClosed || 0}</p>
+            </div>
           </div>
         )}
       </div>

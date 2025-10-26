@@ -109,6 +109,36 @@ export default function ReportDetailPage() {
             <p className="text-gray-700 whitespace-pre-line">{report.description || report.notes}</p>
           </div>
         )}
+        {/* Logs & Bukti */}
+        {Array.isArray(report.logs) && report.logs.length > 0 && (
+          <div className="card">
+            <h2 className="text-lg font-semibold mb-4">Riwayat Aktivitas</h2>
+            <div className="space-y-3">
+              {report.logs
+                .sort((a,b) => new Date(a.created_at || a.createdAt) - new Date(b.created_at || b.createdAt))
+                .map((log) => (
+                <div key={log.id} className="flex items-start gap-3">
+                  <div className="mt-1">•</div>
+                  <div className="flex-1">
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium text-gray-800">{log.actor?.name || 'Sistem'}</span>
+                      {' '}- {log.action.replaceAll('_', ' ')}
+                      {' '}• {new Date(log.created_at || log.createdAt).toLocaleString()}
+                    </div>
+                    {log.notes && (
+                      <div className="text-sm text-gray-800">{log.notes}</div>
+                    )}
+                    {log.photo_url && (
+                      <div className="mt-2">
+                        <img src={log.photo_url} alt="Bukti" className="max-h-64 rounded border" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <AssignmentCreateModal
           report={report}
           open={openAssign}

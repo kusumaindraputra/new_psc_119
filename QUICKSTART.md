@@ -4,11 +4,108 @@ This guide will help you get the PSC 119 system up and running in minutes.
 
 ## 📋 Prerequisites Checklist
 
+### Option 1: Docker (Recommended - No Terminal Conflicts!)
+- [ ] Docker Desktop installed and running
+- [ ] Docker Compose v2.x or higher
+
+### Option 2: Manual Setup
 - [ ] Node.js v16 or higher installed
 - [ ] PostgreSQL v13 or higher installed and running
 - [ ] Git installed (optional)
 
 ## 🎯 Quick Setup (5 minutes)
+
+## 🐳 Option 1: Docker Setup (Recommended)
+
+**No terminal conflicts! Everything runs in isolated containers with hot-reload.**
+
+### Step 1: Start All Services
+
+```powershell
+# Navigate to project root
+cd d:\proj\new_psc_119
+
+# Start all services (first time will download images and install dependencies)
+docker-compose up -d
+```
+
+This single command will:
+- ✅ Start PostgreSQL database
+- ✅ Start Backend API (with hot-reload)
+- ✅ Start Internal Frontend (PWA with hot-reload)
+- ✅ Start Public Frontend (with hot-reload)
+
+### Step 2: Wait for Services to Be Ready
+
+```powershell
+# Check service status
+docker-compose ps
+
+# Follow logs (optional)
+docker-compose logs -f
+```
+
+Wait until you see:
+```
+psc119-backend    | ✅ Database connection established successfully.
+psc119-backend    | 🚀 PSC 119 Backend API running on http://localhost:8080
+psc119-internal   | VITE ... ready in ... ms
+psc119-public     | VITE ... ready in ... ms
+```
+
+### Step 3: Seed Database (First Time Only)
+
+```powershell
+# Run seed script inside backend container
+docker-compose exec backend node src/scripts/seed.js
+```
+
+This creates default users, categories, units, vehicles, and 8 sample reports for testing.
+
+### Step 4: Access the Applications
+
+- **Backend API**: http://localhost:8080
+- **Internal PWA**: http://localhost:3001
+- **Public Site**: http://localhost:3000
+
+### Docker Commands Cheat Sheet
+
+```powershell
+# Start services
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Restart a service
+docker-compose restart [service-name]
+
+# Rebuild after dependency changes
+docker-compose up -d --build
+
+# Remove everything (including database data)
+docker-compose down -v
+
+# Access container shell
+docker-compose exec backend sh
+docker-compose exec frontend-internal sh
+```
+
+### Benefits of Docker Setup
+
+- ✅ **No Terminal Conflicts**: Each service runs in isolated container
+- ✅ **Hot-Reload**: Code changes auto-reload without restart
+- ✅ **Consistent Environment**: Same setup across all machines
+- ✅ **Easy Cleanup**: `docker-compose down` stops everything
+- ✅ **Database Included**: No need to install PostgreSQL
+- ✅ **Volume Mounts**: Edit code on host, runs in container
+
+---
+
+## 💻 Option 2: Manual Setup
 
 ### Step 1: Backend Setup
 

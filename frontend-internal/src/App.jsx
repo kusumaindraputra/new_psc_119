@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import InstallPrompt from './components/InstallPrompt'
+import SSEProvider from './components/SSEProvider'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ReportsPage from './pages/ReportsPage'
@@ -16,6 +17,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <div className="min-h-screen bg-gray-50">
+          <SSEProvider />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             
