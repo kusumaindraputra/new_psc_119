@@ -169,13 +169,47 @@ export default function TrackPage() {
                   </div>
                 </div>
 
+                {/* Reporter Photo */}
                 {report.photo_url && (
                   <div className="mb-4">
+                    <h4 className="font-semibold text-gray-700 mb-2 text-sm md:text-base">📷 Foto Pelapor:</h4>
                     <img
                       src={report.photo_url}
-                      alt="Foto kejadian"
-                      className="w-full max-w-md rounded-lg"
+                      alt="Foto kejadian dari pelapor"
+                      className="w-full max-w-md rounded-lg border shadow-sm"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                      }}
                     />
+                  </div>
+                )}
+
+                {/* Field Officer Photos from Logs */}
+                {report.logs && report.logs.filter(log => log.photo_url).length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="font-semibold text-gray-700 mb-2 text-sm md:text-base">📷 Foto Petugas:</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {report.logs
+                        .filter(log => log.photo_url)
+                        .map((log, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <img
+                              src={log.photo_url}
+                              alt={`Foto dari petugas ${idx + 1}`}
+                              className="w-full rounded-lg border shadow-sm"
+                              onError={(e) => {
+                                e.target.style.display = 'none'
+                              }}
+                            />
+                            {log.notes && (
+                              <p className="text-xs text-gray-600 italic">{log.notes}</p>
+                            )}
+                            <p className="text-xs text-gray-500">
+                              {formatDate(log.created_at)}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 )}
 

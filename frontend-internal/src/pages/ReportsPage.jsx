@@ -4,6 +4,7 @@ import { reportAPI } from '../services/api'
 import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
 import { getReportStatusText } from '../utils/statusLabels'
+import ReportCreateModal from '../components/ReportCreateModal'
 
 const statusBadge = (status) => {
   const map = {
@@ -22,6 +23,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true)
   const [reports, setReports] = useState([])
   const [filters, setFilters] = useState({ status: 'pending', q: '' })
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     loadReports()
@@ -84,8 +86,14 @@ export default function ReportsPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Laporan</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Laporan</h1>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn btn-primary w-full sm:w-auto min-h-[44px] text-sm md:text-base"
+          >
+            + Buat Laporan
+          </button>
         </div>
 
         <div className="card">
@@ -209,6 +217,12 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
+
+      <ReportCreateModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={loadReports}
+      />
     </Layout>
   )
 }

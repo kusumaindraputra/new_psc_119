@@ -27,7 +27,7 @@ export default function Layout({ children }) {
 
   const navLinks = [
     { path: '/dashboard', label: '📊 Dashboard', roles: ['admin', 'dispatcher', 'field_officer', 'managerial'] },
-    { path: '/reports', label: '📋 Laporan', roles: ['admin', 'dispatcher', 'field_officer', 'managerial'] },
+    { path: '/reports', label: '📋 Laporan', roles: ['admin', 'dispatcher', 'managerial'] },
     { path: '/assignments', label: '✍️ Penugasan', roles: ['admin', 'dispatcher'] },
     { path: '/my-assignments', label: '📦 Tugas Saya', roles: ['field_officer'] },
     { path: '/admin', label: '⚙️ Admin', roles: ['admin', 'managerial'] },

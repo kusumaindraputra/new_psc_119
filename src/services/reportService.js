@@ -197,6 +197,11 @@ class ReportService {
             { association: 'vehicle' },
             { association: 'unit' }
           ]
+        },
+        {
+          model: ReportLog,
+          as: 'logs',
+          order: [['created_at', 'DESC']]
         }
       ]
     });

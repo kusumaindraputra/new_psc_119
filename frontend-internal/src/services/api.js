@@ -214,6 +214,21 @@ export const adminAPI = {
 }
 
 export const usersAPI = {
+  getAll: async () => {
+    const response = await api.get('/auth/users')
+    return response.data
+  },
+
+  create: async (data) => {
+    const response = await api.post('/auth/register', data)
+    return response.data
+  },
+  
+  update: async (id, data) => {
+    const response = await api.put(`/auth/users/${id}`, data)
+    return response.data
+  },
+  
   getFieldOfficers: async () => {
     const response = await api.get('/auth/users/field-officers')
     return response.data

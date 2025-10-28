@@ -12,6 +12,9 @@ const streamEvents = (req, res) => {
   // Get user info from authenticated request
   const userId = req.userId || null;
   const role = req.user?.role || null;
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  console.log(`[SSE] New connection - User: ${userId}, Role: ${role}, IP: ${clientIP}`);
 
   // Add client to SSE manager
   const client = eventEmitter.addClient(res, userId, role);
@@ -24,6 +27,20 @@ const streamEvents = (req, res) => {
 
   // Handle client disconnect
   req.on('close', () => {
+    console.log(`[SSE] Client disconnected - User: ${userId}, Role: ${role}, IP: ${clientIP}, Reason: Client closed connection`);
+    eventEmitter.removeClient(client);
+    res.end();
+  });
+
+  // Handle errors
+  req.on('error', (error) => {
+    console.error(`[SSE] Connection error - User: ${userId}, Role: ${role}, IP: ${clientIP}`, error);
+    eventEmitter.removeClient(client);
+    res.end();
+  });
+
+  res.on('error', (error) => {
+    console.error(`[SSE] Response error - User: ${userId}, Role: ${role}, IP: ${clientIP}`, error);
     eventEmitter.removeClient(client);
     res.end();
   });
@@ -31,6 +48,7 @@ const streamEvents = (req, res) => {
   // Set timeout (optional, configured from env)
   const timeout = parseInt(process.env.SSE_TIMEOUT) || 300000; // 5 minutes default
   setTimeout(() => {
+    console.log(`[SSE] Connection timeout - User: ${userId}, Role: ${role}, IP: ${clientIP}, Timeout: ${timeout}ms`);
     eventEmitter.removeClient(client);
     res.end();
   }, timeout);

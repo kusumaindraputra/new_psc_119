@@ -12,14 +12,26 @@ export default function DashboardPage() {
   const [myAssignmentsCount, setMyAssignmentsCount] = useState(0)
 
   useEffect(() => {
-    loadMetrics()
+    // For non-field officers, load dashboard metrics
+    if (user && user.role !== 'field_officer') {
+      loadMetrics()
+    } else if (user && user.role === 'field_officer') {
+      // For field officers, skip metrics (endpoint not authorized), just stop loading spinner
+      setLoading(false)
+    }
+
+    // Always load my assignments summary for field officer
     if (user?.role === 'field_officer') {
-      // Load my assignments count for field officer
-      assignmentAPI.getMyAssignments()
-        .then(res => setMyAssignmentsCount((res?.data || []).filter(a => a.status !== 'completed').length))
+      assignmentAPI
+        .getMyAssignments()
+        .then((res) =>
+          setMyAssignmentsCount(
+            (res?.data || []).filter((a) => a.status !== 'completed').length
+          )
+        )
         .catch(() => {})
     }
-  }, [])
+  }, [user])
 
   const loadMetrics = async () => {
     try {
@@ -63,55 +75,55 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             Dashboard
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm md:text-base text-gray-600">
             Selamat datang, {user?.name}!
           </p>
         </div>
 
         {metrics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Laporan</p>
-                  <p className="text-3xl font-bold text-gray-900">{metrics.totalReports || 0}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mb-1">Total Laporan</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-900">{metrics.totalReports || 0}</p>
                 </div>
-                <div className="text-4xl">📋</div>
+                <div className="text-3xl md:text-4xl">📋</div>
               </div>
             </div>
 
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Menunggu Verifikasi</p>
-                  <p className="text-3xl font-bold text-yellow-600">{metrics.pendingReports || 0}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mb-1">Menunggu Verifikasi</p>
+                  <p className="text-2xl md:text-3xl font-bold text-yellow-600">{metrics.pendingReports || 0}</p>
                 </div>
-                <div className="text-4xl">⏳</div>
+                <div className="text-3xl md:text-4xl">⏳</div>
               </div>
             </div>
 
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Dalam Proses</p>
-                  <p className="text-3xl font-bold text-orange-600">{metrics.inProgressReports || 0}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mb-1">Dalam Proses</p>
+                  <p className="text-2xl md:text-3xl font-bold text-orange-600">{metrics.inProgressReports || 0}</p>
                 </div>
-                <div className="text-4xl">🚑</div>
+                <div className="text-3xl md:text-4xl">🚑</div>
               </div>
             </div>
 
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Selesai</p>
-                  <p className="text-3xl font-bold text-green-600">{metrics.completedReports || 0}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mb-1">Selesai</p>
+                  <p className="text-2xl md:text-3xl font-bold text-green-600">{metrics.completedReports || 0}</p>
                 </div>
-                <div className="text-4xl">✅</div>
+                <div className="text-3xl md:text-4xl">✅</div>
               </div>
             </div>
           </div>
@@ -119,9 +131,9 @@ export default function DashboardPage() {
 
         {user?.role === 'field_officer' && (
           <div className="card">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Tugas Saya</h2>
-            <p className="text-gray-600 mb-4">Anda memiliki {myAssignmentsCount} tugas aktif</p>
-            <a href="/my-assignments" className="btn btn-primary">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">Tugas Saya</h2>
+            <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">Anda memiliki {myAssignmentsCount} tugas aktif</p>
+            <a href="/my-assignments" className="btn btn-primary w-full md:w-auto">
               Lihat Tugas
             </a>
           </div>
@@ -129,28 +141,28 @@ export default function DashboardPage() {
 
         {(user?.role === 'dispatcher' || user?.role === 'admin') && (
           <div className="card">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Laporan Terbaru</h2>
-            <p className="text-gray-600 mb-4">{metrics?.pendingReports || 0} laporan menunggu verifikasi</p>
-            <a href="/reports" className="btn btn-primary">
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">Laporan Terbaru</h2>
+            <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">{metrics?.pendingReports || 0} laporan menunggu verifikasi</p>
+            <a href="/reports" className="btn btn-primary w-full md:w-auto">
               Lihat Laporan
             </a>
           </div>
         )}
 
         {metrics?.responseTime && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             <div className="card">
-              <p className="text-sm text-gray-600 mb-1">Rata Verifikasi (menit)</p>
-              <p className="text-3xl font-bold text-gray-900">{metrics.responseTime.avgVerificationMinutes}</p>
+              <p className="text-xs md:text-sm text-gray-600 mb-1">Rata Verifikasi (menit)</p>
+              <p className="text-2xl md:text-3xl font-bold text-gray-900">{metrics.responseTime.avgVerificationMinutes}</p>
             </div>
             <div className="card">
-              <p className="text-sm text-gray-600 mb-1">Rata Selesai (jam)</p>
-              <p className="text-3xl font-bold text-gray-900">{metrics.responseTime.avgClosureHours}</p>
+              <p className="text-xs md:text-sm text-gray-600 mb-1">Rata Selesai (jam)</p>
+              <p className="text-2xl md:text-3xl font-bold text-gray-900">{metrics.responseTime.avgClosureHours}</p>
             </div>
             <div className="card">
-              <p className="text-sm text-gray-600 mb-1">SLA 24 jam</p>
-              <p className="text-3xl font-bold text-gray-900">{metrics.sla?.slaPercentage || 0}%</p>
-              <p className="text-xs text-gray-500">Dalam SLA: {metrics.sla?.withinSLA || 0} • Total Selesai: {metrics.sla?.totalClosed || 0}</p>
+              <p className="text-xs md:text-sm text-gray-600 mb-1">SLA 24 jam</p>
+              <p className="text-2xl md:text-3xl font-bold text-gray-900">{metrics.sla?.slaPercentage || 0}%</p>
+              <p className="text-xs text-gray-500 mt-1">Dalam SLA: {metrics.sla?.withinSLA || 0} • Total Selesai: {metrics.sla?.totalClosed || 0}</p>
             </div>
           </div>
         )}

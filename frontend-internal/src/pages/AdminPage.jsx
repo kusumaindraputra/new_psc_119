@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
-import { adminAPI } from '../services/api'
+import { adminAPI, usersAPI } from '../services/api'
 import { toast } from 'react-toastify'
 import { getVehicleStatusText } from '../utils/statusLabels'
 
@@ -29,6 +29,11 @@ export default function AdminPage() {
   const [vehicles, setVehicles] = useState([])
   const [vehForm, setVehForm] = useState({ id: '', plate_number: '', type: 'ambulance', status: 'available', unit_id: '', is_active: true })
 
+  // Users state and handlers
+  const [userLoading, setUserLoading] = useState(false)
+  const [users, setUsers] = useState([])
+  const [userForm, setUserForm] = useState({ id: '', name: '', email: '', phone: '', role: 'field_officer', password: '', is_active: true })
+
   useEffect(() => {
     if (activeTab === 'categories') loadCategories()
     if (activeTab === 'units') loadUnits()
@@ -36,6 +41,7 @@ export default function AdminPage() {
       loadVehicles()
       loadUnits() // for unit select
     }
+    if (activeTab === 'users') loadUsers()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab])
 
@@ -213,6 +219,68 @@ export default function AdminPage() {
       console.error(e)
       toast.error('Gagal menghapus kendaraan')
     }
+  }
+
+  // Users CRUD
+  const loadUsers = async () => {
+    try {
+      setUserLoading(true)
+      const res = await usersAPI.getAll()
+      setUsers(res?.data || [])
+    } catch (e) {
+      console.error(e)
+      toast.error('Gagal memuat pengguna')
+    } finally {
+      setUserLoading(false)
+    }
+  }
+
+  const saveUser = async (e) => {
+    e.preventDefault()
+    try {
+      if (!userForm.name || !userForm.email) return toast.warn('Nama dan email wajib diisi')
+      if (!userForm.id && !userForm.password) return toast.warn('Password wajib diisi untuk pengguna baru')
+      
+      const payload = {
+        name: userForm.name,
+        email: userForm.email,
+        phone: userForm.phone || null,
+        role: userForm.role,
+        is_active: !!userForm.is_active
+      }
+
+      if (userForm.id) {
+        // Update - only include password if provided
+        if (userForm.password) {
+          payload.password = userForm.password
+        }
+        await usersAPI.update(userForm.id, payload)
+        toast.success('Pengguna diperbarui')
+      } else {
+        // Create - password is required
+        payload.password = userForm.password
+        await usersAPI.create(payload)
+        toast.success('Pengguna dibuat')
+      }
+      
+      setUserForm({ id: '', name: '', email: '', phone: '', role: 'field_officer', password: '', is_active: true })
+      loadUsers()
+    } catch (e) {
+      console.error(e)
+      toast.error(e.response?.data?.message || 'Gagal menyimpan pengguna')
+    }
+  }
+
+  const editUser = (u) => {
+    setUserForm({
+      id: u.id,
+      name: u.name || '',
+      email: u.email || '',
+      phone: u.phone || '',
+      role: u.role || 'field_officer',
+      password: '', // Don't pre-fill password
+      is_active: !!u.is_active
+    })
   }
 
   return (
@@ -437,10 +505,115 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'users' && (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">👥</div>
-              <p className="text-gray-600 mb-2">Manajemen Pengguna</p>
-              <p className="text-sm text-gray-500">CRUD pengguna sistem akan ditambahkan di sini</p>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-2">Tambah / Ubah Pengguna</h3>
+                <form onSubmit={saveUser} className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                  <input 
+                    className="input md:col-span-2" 
+                    placeholder="Nama lengkap" 
+                    value={userForm.name} 
+                    onChange={(e) => setUserForm(f => ({ ...f, name: e.target.value }))} 
+                  />
+                  <input 
+                    className="input md:col-span-2" 
+                    type="email"
+                    placeholder="Email" 
+                    value={userForm.email} 
+                    onChange={(e) => setUserForm(f => ({ ...f, email: e.target.value }))} 
+                  />
+                  <input 
+                    className="input" 
+                    placeholder="No. Telepon" 
+                    value={userForm.phone} 
+                    onChange={(e) => setUserForm(f => ({ ...f, phone: e.target.value }))} 
+                  />
+                  <select 
+                    className="input" 
+                    value={userForm.role} 
+                    onChange={(e) => setUserForm(f => ({ ...f, role: e.target.value }))}
+                  >
+                    <option value="field_officer">Petugas Lapangan</option>
+                    <option value="dispatcher">Dispatcher</option>
+                    <option value="admin">Admin</option>
+                    <option value="managerial">Manajerial</option>
+                  </select>
+                  <input 
+                    className="input md:col-span-2" 
+                    type="password"
+                    placeholder={userForm.id ? "Password (kosongkan jika tidak diubah)" : "Password"} 
+                    value={userForm.password} 
+                    onChange={(e) => setUserForm(f => ({ ...f, password: e.target.value }))} 
+                  />
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600">Aktif</label>
+                    <input 
+                      type="checkbox" 
+                      checked={userForm.is_active} 
+                      onChange={(e) => setUserForm(f => ({ ...f, is_active: e.target.checked }))} 
+                    />
+                  </div>
+                  <div className="md:col-span-3 flex gap-2">
+                    <button className="btn btn-primary w-full" type="submit">
+                      {userForm.id ? 'Simpan Perubahan' : 'Tambah Pengguna'}
+                    </button>
+                    {userForm.id && (
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary" 
+                        onClick={() => setUserForm({ id: '', name: '', email: '', phone: '', role: 'field_officer', password: '', is_active: true })}
+                      >
+                        Batal
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+              <div className="overflow-x-auto">
+                {userLoading ? (
+                  <div className="text-center py-8 text-gray-600">Memuat...</div>
+                ) : (
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-600">
+                        <th className="py-3 px-3">Nama</th>
+                        <th className="py-3 px-3">Email</th>
+                        <th className="py-3 px-3 hidden sm:table-cell">Telepon</th>
+                        <th className="py-3 px-3">Role</th>
+                        <th className="py-3 px-3">Aktif</th>
+                        <th className="py-3 px-3 w-40">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.length === 0 && (
+                        <tr><td colSpan="6" className="py-8 text-center text-gray-500">Belum ada pengguna</td></tr>
+                      )}
+                      {users.map(u => {
+                        const roleLabels = {
+                          'field_officer': 'Petugas Lapangan',
+                          'dispatcher': 'Dispatcher',
+                          'admin': 'Admin',
+                          'managerial': 'Manajerial'
+                        }
+                        return (
+                          <tr key={u.id} className="border-t">
+                            <td className="py-3 px-3 font-medium">{u.name}</td>
+                            <td className="py-3 px-3">{u.email}</td>
+                            <td className="py-3 px-3 hidden sm:table-cell">{u.phone || '-'}</td>
+                            <td className="py-3 px-3">{roleLabels[u.role] || u.role}</td>
+                            <td className="py-3 px-3">{u.is_active ? '✓' : '—'}</td>
+                            <td className="py-3 px-3">
+                              <div className="flex gap-2">
+                                <button className="btn btn-secondary" onClick={() => editUser(u)}>Ubah</button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
           )}
         </div>

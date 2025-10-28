@@ -1,4 +1,4 @@
-const CACHE_NAME = 'psc119-internal-v2'
+const CACHE_NAME = 'psc119-internal-v3'
 const API_CACHE = 'psc119-api-v1'
 const urlsToCache = [
   '/',
@@ -39,6 +39,30 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
+
+  // Always bypass cache for Vite dev client paths if ever encountered
+  if (url.pathname.startsWith('/@vite')) {
+    event.respondWith(fetch(request))
+    return
+  }
+
+  // Network-first for navigation requests (HTML). Prevents serving stale dev index.html
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Optionally update cache for offline use
+          const copy = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put('/', copy))
+          return response
+        })
+        .catch(async () => {
+          const cached = await caches.match('/')
+          return cached || new Response('<h1>Offline</h1>', { headers: { 'Content-Type': 'text/html' } })
+        })
+    )
+    return
+  }
 
   // Network-first strategy for API calls (critical for real-time data)
   if (url.pathname.startsWith('/api/')) {

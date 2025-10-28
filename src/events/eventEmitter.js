@@ -10,27 +10,36 @@ class SSEEventEmitter extends EventEmitter {
     const client = { res, userId, role, connectedAt: new Date() };
     this.clients.add(client);
     
-    console.log(`📡 SSE client connected. Total clients: ${this.clients.size}`);
+    console.log(`📡 SSE client connected - User: ${userId}, Role: ${role}. Total clients: ${this.clients.size}`);
     
     return client;
   }
 
   removeClient(client) {
+    const duration = client.connectedAt ? Date.now() - client.connectedAt.getTime() : 0;
     this.clients.delete(client);
-    console.log(`📡 SSE client disconnected. Total clients: ${this.clients.size}`);
+    console.log(`📡 SSE client disconnected - User: ${client.userId}, Role: ${client.role}, Duration: ${Math.round(duration/1000)}s. Total clients: ${this.clients.size}`);
   }
 
   broadcastToAll(event, data) {
     const message = this.formatSSEMessage(event, data);
+    let successCount = 0;
+    let errorCount = 0;
     
     this.clients.forEach(client => {
       try {
         client.res.write(message);
+        successCount++;
       } catch (error) {
-        console.error('Error broadcasting to client:', error);
+        console.error(`❌ Error broadcasting to client (User: ${client.userId}, Role: ${client.role}):`, error.message);
         this.removeClient(client);
+        errorCount++;
       }
     });
+    
+    if (errorCount > 0) {
+      console.log(`📢 Broadcast complete - Event: ${event}, Success: ${successCount}, Errors: ${errorCount}`);
+    }
   }
 
   broadcastToUser(userId, event, data) {
@@ -69,15 +78,23 @@ class SSEEventEmitter extends EventEmitter {
 
   sendHeartbeat() {
     const message = this.formatSSEMessage('heartbeat', { timestamp: new Date().toISOString() });
+    let aliveCount = 0;
+    let deadCount = 0;
     
     this.clients.forEach(client => {
       try {
         client.res.write(message);
+        aliveCount++;
       } catch (error) {
-        console.error('Error sending heartbeat:', error);
+        console.error(`❌ Heartbeat failed for client (User: ${client.userId}, Role: ${client.role}):`, error.message);
         this.removeClient(client);
+        deadCount++;
       }
     });
+    
+    if (deadCount > 0 || this.clients.size > 0) {
+      console.log(`💓 Heartbeat sent - Alive: ${aliveCount}, Dead removed: ${deadCount}, Total: ${this.clients.size}`);
+    }
   }
 }
 
